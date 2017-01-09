@@ -2,6 +2,7 @@
   "name": "react-employees-crud",
   "version": "0.1.0",
   "private": true,
+  "proxy": "http://localhost:16687/",
   "devDependencies": {
     "react-scripts": "0.8.4"
   },
