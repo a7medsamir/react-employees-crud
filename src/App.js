@@ -3,33 +3,12 @@ import React, { Component } from 'react';
 //import jsonp from "superagent-jsonp";
 import logo from './logo.svg';
 import './App.css';
-import { Button, OverlayTrigger, Modal, Popover, FormGroup, FormControl, ControlLabel, HelpBlock, Table, Grid, Row, Col, PageHeader } from 'react-bootstrap'
+import { Button, Modal, Form, FormGroup, FormControl, ControlLabel, HelpBlock, Table, Grid, Row, Col, PageHeader } from 'react-bootstrap'
 import Client from './Client';
-
+import FieldGroup from './components/FieldGroup.js';
 
 const MATCHING_ITEM_LIMIT = 25;
 
-class FieldGroup extends React.Component {
-  render() {
-    const popoverHoverFocus = (
-      <Popover id="popover-trigger-hover-focus">
-        <HelpBlock>{this.props.help}</HelpBlock>
-      </Popover>
-    );
-    return (
-      <FormGroup id={this.props.ControlId}>
-
-        <ControlLabel>{this.props.label}</ControlLabel>
-
-        <FormControl type={this.props.type} placeholder={this.props.placeholder} />
-        {this.props.help &&
-          <OverlayTrigger trigger={['hover', 'focus']} placement="right" overlay={popoverHoverFocus}>
-            <span className="glyphicon glyphicon-info-sign info-sign"></span>
-          </OverlayTrigger>
-        }
-      </FormGroup>);
-  }
-}
 class ConfirmDeleteModal extends React.Component {
 
   constructor(props) {
@@ -67,9 +46,10 @@ class ConfirmDeleteModal extends React.Component {
 class NewEditEmployeeModal extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { showModal: false };
+    this.state = { showModal: false, employee: {}, mode: '' };
     this.open = this.open.bind(this);
     this.close = this.close.bind(this);
+    this._handleChange = this._handleChange.bind(this);
   }
   close() {
     this.setState({ showModal: false });
@@ -77,33 +57,54 @@ class NewEditEmployeeModal extends React.Component {
   open() {
     this.setState({ showModal: true });
   }
+
+  // generic handle change function
+  _handleChange(ev) {
+    // create clone of fields object using ES6 spread operator
+    var employee =Object.assign({},  this.state.employee);
+    // update specified key in the fields object using the input's name attribute
+    employee[ev.target.name] = ev.target.value;
+    this.setState({ employee: employee });
+  }
+
+
   render() {
     return (
+
       <Modal show={this.state.showModal} onHide={this.close}>
+
         <Modal.Header closeButton>
           <Modal.Title>Employee Details</Modal.Title>
         </Modal.Header>
+
         <Modal.Body>
-          <form>
+          <Form>
             <FieldGroup ControlId="formControlsFirstName"
               type="text"
               label="First Name:"
               placeholder="Enter text"
-              help="Enter Employee First Name." />
+              helpTooltip="First Name"
+              name="firstName"
+              helpDescription="Enter Employee First Name." value={this.state.employee.firstName} onChange={this._handleChange} />
+
             <FieldGroup ControlId="formControlsSecondName"
               type="text"
               label="Last Name:"
               placeholder="Enter text"
-              help="Enter Employee Last Name." />
+              name="lastName"
+              helpTooltip="Last Name"
+              helpDescription="Enter Employee Last Name." value={this.state.employee.lastName} onChange={this._handleChange} />
             <FieldGroup ControlId="formControlsSecondName"
               type="email"
               label="Email"
               placeholder="Enter email"
-              help="Enter Employee Email." />
-          </form>
+              name="email"
+              helpTooltip="Email"
+              helpDescription="Enter Employee Email." value={this.state.employee.email} onChange={this._handleChange} />
+          </Form>
         </Modal.Body>
         <Modal.Footer>
-          <Button bsStyle="primary" onClick={this.save}>Submit</Button>
+          <Button bsStyle="primary" onClick={this.props.onSaveEmployee}>Submit</Button>
           <Button onClick={this.close}>Cancel</Button>
         </Modal.Footer>
       </Modal>
@@ -130,20 +131,48 @@ class ViewEmployeeModal extends React.Component {
         <Modal.Header closeButton>
           <Modal.Title>Employee Details</Modal.Title>
         </Modal.Header>
+
         <Modal.Body>
-          <form>
-            <label>Id: </label>
-            <span>{this.state.employee.id}</span>
-            <br />
-            <label>First Name: </label>
-            <span>{this.state.employee.firstName}</span>
-            <br />
-            <label>Last Name: </label>
-            <span>{this.state.employee.lastName}</span>
-            <br />
-            <label>Email</label>
-            <span>{this.state.employee.email}</span>
-          </form>
+          <Form horizontal>
+            <Row>
+              <Col sm={3}>
+                <ControlLabel>Id: </ControlLabel>
+              </Col>
+              <Col>
+                <FormControl.Static>
+                  {this.state.employee.id}
+                </FormControl.Static>
+              </Col>
+            </Row>
+
+            <Row>
+              <Col sm={3}>
+                <ControlLabel>First Name: </ControlLabel>
+              </Col>
+              <Col>
+                <FormControl.Static>
+                  {this.state.employee.firstName}
+                </FormControl.Static>
+              </Col>
+            </Row>
+            <Row>
+              <Col sm={3}>
+                <ControlLabel>Last Name: </ControlLabel>
+              </Col>
+              <Col>
+                <FormControl.Static>{this.state.employee.lastName}</FormControl.Static>
+              </Col>
+            </Row>
+
+            <Row>
+              <Col sm={3}>
+                <ControlLabel>Email</ControlLabel>
+              </Col>
+              <Col>
+                <FormControl.Static>{this.state.employee.email}</FormControl.Static>
+              </Col>
+            </Row>
+          </Form>
         </Modal.Body>
         <Modal.Footer>
           <Button onClick={this.close}>Cancel</Button>
@@ -164,7 +193,7 @@ class EmployeeDataRow extends React.Component {
           <Button bsStyle="link" onClick={this.props.view} value={this.props.employeeIndex}>
             View
           </Button>
-          <Button bsStyle="link" onClick={this.props.edit} value={this.props.employeeIndex}>
+          <Button bsStyle="link" onClick={this.props.edit} value={this.props.employee.id}>
             edit
           </Button>
           <Button bsStyle="link" onClick={this.props.delete} value={this.props.employee.id}>
@@ -193,7 +222,7 @@ class EmployeeDataTable extends React.Component {
       <Table responsive striped bordered condensed hover>
         <thead>
           <tr>
-            <th>#</th>
+            <th>Id</th>
             <th>First Name</th>
             <th>Last Name</th>
             <th>Email</th>
@@ -201,10 +230,10 @@ class EmployeeDataTable extends React.Component {
           </tr>
         </thead>
         <tbody>
-        {rows.length>0 ? 
-          (rows)
-          : (<tr ><td colSpan={5}>No Data Found</td></tr>)
-        }
+          {rows.length > 0 ?
+            (rows)
+            : (<tr ><td colSpan={5}>No Data Found</td></tr>)
+          }
         </tbody>
       </Table>
     );
@@ -221,7 +250,8 @@ export default class App extends Component {
     this.handleSearchChange = this.handleSearchChange.bind(this);
     this.handleSearchReset = this.handleSearchReset.bind(this);
     this.deleteEmployee = this.deleteEmployee.bind(this);
-    this.loadAllEmployee=this.loadAllEmployee.bind(this);
+    this.loadAllEmployee = this.loadAllEmployee.bind(this);
+    this.saveEmployee = this.saveEmployee.bind(this);
   }
   componentDidMount() {
     Client.loadAllEmployees((employees) => {
@@ -230,38 +260,58 @@ export default class App extends Component {
       });
     });
   }
-
-
   openNewEditEmployee(e) {
-    this.refs.EmployeeModal.open();
+    var employeeId = e.target.value;
+    this.refs.NewEditEmployeeModal.state.employee = {};
+
+    if (employeeId != '') {
+      this.refs.NewEditEmployeeModal.state.mode = 'edit';
+      for (let i = 0; i < this.state.employees.length; i++) {
+        if (this.state.employees[i].id == employeeId) {
+          this.refs.NewEditEmployeeModal.state.employee = this.state.employees[i];
+          break;
+        }
+      }
+    } else {
+      this.refs.NewEditEmployeeModal.state.mode = 'new';
+    }
+    this.refs.NewEditEmployeeModal.open();
   }
   openViewEmployee(e) {
-    debugger;
     var employeeIndex = parseInt(e.target.value, 10);
-
-    //var employee = this.state.employees.splice(employeeIndex, 1);
     this.refs.EmployeeViewModal.state.employee = this.state.employees[employeeIndex];
-
     this.refs.EmployeeViewModal.open();
   }
   openDeleteEmployee(e) {
-    debugger;
     var employeeId = e.target.value;
     this.refs.ConfirmDeleteModal.state.employeeId = employeeId;
     this.refs.ConfirmDeleteModal.open();
   }
 
   deleteEmployee(e) {
-    debugger;
     var employeeId = e.target.value;
-   Client.deleteEmployee(employeeId,(result)=>{
+    Client.deleteEmployee(employeeId, (result) => {
       this.refs.ConfirmDeleteModal.close();
-     debugger;
       this.loadAllEmployee();
-   });
-
+    });
+  }
+  saveEmployee(e) {
+    var employeeObj = this.refs.NewEditEmployeeModal.state.employee;
+    if (this.refs.NewEditEmployeeModal.state.mode == 'new') {
+      Client.saveNewEmployee(employeeObj, (result) => {
+        this.refs.NewEditEmployeeModal.close();
+        this.loadAllEmployee();
+      });
+    }
+    else if (this.refs.NewEditEmployeeModal.state.mode == 'edit') {
+      Client.saveOldEmployee(employeeObj.id,employeeObj, (result) => {
+        this.refs.NewEditEmployeeModal.close();
+        this.loadAllEmployee();
+      });
+    }
 
   }
+
   handleSearchReset(e) {
     Client.loadAllEmployees((employees) => {
       this.setState({
@@ -271,13 +321,13 @@ export default class App extends Component {
       });
     });
   }
-loadAllEmployee(){
+  loadAllEmployee() {
     Client.loadAllEmployees((employees) => {
       this.setState({
         employees: employees,
       });
     });
-}
+  }
 
 
   handleSearchChange(e) {
@@ -302,7 +352,6 @@ loadAllEmployee(){
         employees: employees.slice(0, MATCHING_ITEM_LIMIT),
       });
     });
-
   }
   render() {
     return (
@@ -314,20 +363,19 @@ loadAllEmployee(){
           </h2>
         </div>
         <div className="App-content">
-          <div className="row">
-            <FormControl type="text"
-              placeholder="Search employee by name ..."
-              value={this.state.searchValue}
-              onChange={this.handleSearchChange}
-              />
+          <FormControl type="text"
+            placeholder="Search employee by name ..."
 
-            {this.state.showResetSearch ? (
-              <Button
-                onClick={this.handleSearchReset}
-                > Reset Search</Button>
-            ) : ''
-            }
-          </div>
+            value={this.state.searchValue}
+            onChange={this.handleSearchChange}
+            />
+
+          {this.state.showResetSearch ? (
+            <Button
+              onClick={this.handleSearchReset}
+              > Reset Search</Button>
+          ) : ''
+          }
           <EmployeeDataTable employees={this.state.employees}
             viewEmployee={this.openViewEmployee}
             editEmployee={this.openNewEditEmployee}
@@ -338,10 +386,8 @@ loadAllEmployee(){
             onClick={this.openNewEditEmployee}>
             <i className="glyphicon glyphicon-plus"> </i>
             &nbsp;New Employee
-                   </Button>
-
-
-          <NewEditEmployeeModal ref="EmployeeModal" />
+          </Button>
+          <NewEditEmployeeModal ref="NewEditEmployeeModal" onSaveEmployee={this.saveEmployee} />
           <ViewEmployeeModal ref="EmployeeViewModal" />
           <ConfirmDeleteModal ref="ConfirmDeleteModal" onConfirmDeleteEmployee={this.deleteEmployee} />
         </div >

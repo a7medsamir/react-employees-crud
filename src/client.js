@@ -1,6 +1,6 @@
 
 function searchEmployees(query, cb) {
-  return fetch('api/employees?q='+query, {
+  return fetch('api/employees?q=' + query, {
     accept: 'application/json',
   }).then(checkStatus)
     .then(parseJSON)
@@ -14,14 +14,35 @@ function loadAllEmployees(cb) {
     .then(parseJSON)
     .then(cb);
 }
-function deleteEmployee(id,cb){
-  return fetch('api/employees/'+id, {
-      method:'delete'    
+function deleteEmployee(id, cb) {
+  return fetch('api/employees/' + id, {
+    method: 'delete'
   }).then(checkStatus)
     .then(cb);
 }
-
-function checkStatus(response) {
+function saveNewEmployee(obj, cb) {
+  return fetch('api/employees/', {
+    method: 'POST',
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(obj)
+  }).then(checkStatus)
+    .then(cb);
+}
+function saveOldEmployee(id,obj, cb) {
+  return fetch('api/employees/'+id, {
+    method: 'PUT',
+   headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(obj)
+  }).then(checkStatus)
+    .then(cb);
+}
+function checkStatus(response) {debugger
   if (response.status >= 200 && response.status < 300) {
     return response;
   } else {
@@ -37,5 +58,5 @@ function parseJSON(response) {
   return response.json();
 }
 
-const Client ={ loadAllEmployees,searchEmployees,deleteEmployee };
+const Client = { loadAllEmployees, searchEmployees, deleteEmployee, saveNewEmployee, saveOldEmployee };
 export default Client;
