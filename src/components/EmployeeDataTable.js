@@ -36,7 +36,8 @@ export default class EmployeeDataTable extends React.Component {
 
     this.props.employees.map((employee, employeeIndex) => {
       rows.push(<EmployeeDataRow employee={employee} key={employee.id} view={this.props.viewEmployee} edit={this.props.editEmployee} delete={this.props.deleteEmployee} employeeIndex={employeeIndex} />)
-    });
+    return employee;
+  });
 
     return (
       <Table responsive striped bordered condensed hover>

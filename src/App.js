@@ -1,9 +1,9 @@
 import React, { Component } from 'react';
 import logo from './logo.svg';
 import './App.css';
-import { Button, Modal, Form, FormControl} from 'react-bootstrap'
+import { Button, Modal, Form, FormControl } from 'react-bootstrap'
 import Client from './Client.js';
-import FieldGroup  from './components/FieldGroup.js';
+import FieldGroup from './components/FieldGroup.js';
 import ConfirmDeleteModal from './components/ConfirmDeleteModal.js';
 import ViewEmployeeModal from './components/ViewEmployeeModal.js';
 import EmployeeDataTable from './components/EmployeeDataTable.js';
@@ -27,7 +27,7 @@ class NewEditEmployeeModal extends React.Component {
   // generic handle change function
   _handleChange(ev) {
     // create clone of employee object
-    var employee =Object.assign({},  this.state.employee);
+    var employee = Object.assign({}, this.state.employee);
     // update specified key in the fields object using the input's name attribute
     employee[ev.target.name] = ev.target.value;
     this.setState({ employee: employee });
@@ -40,7 +40,11 @@ class NewEditEmployeeModal extends React.Component {
       <Modal show={this.state.showModal} onHide={this.close}>
 
         <Modal.Header closeButton>
-          <Modal.Title>Employee Details</Modal.Title>
+          <Modal.Title>
+            {
+              this.state.mode === 'new' ? 'Add New Employee' : this.state.mode === 'edit' ? 'Edit Employee' : ''
+            }
+          </Modal.Title>
         </Modal.Header>
 
         <Modal.Body>
@@ -85,8 +89,8 @@ export default class App extends Component {
     this.state = { employees: [], searchValue: '', showResetSearch: false };
     this.openNewEditEmployee = this.openNewEditEmployee.bind(this);
     this.openViewEmployee = this.openViewEmployee.bind(this);
-    this.openDeleteEmployee = this.openDeleteEmployee.bind(this);  
-        
+    this.openDeleteEmployee = this.openDeleteEmployee.bind(this);
+
     this.loadAllEmployee = this.loadAllEmployee.bind(this);
     this.handleSearchChange = this.handleSearchChange.bind(this);
     this.handleSearchReset = this.handleSearchReset.bind(this);
@@ -95,11 +99,11 @@ export default class App extends Component {
 
   }
 
-   loadAllEmployee() {
-    client.loadAllEmployees('',(employees) => {
+  loadAllEmployee() {
+    client.loadAllEmployees('', (employees) => {
       this.setState({
         employees: employees,
-         showResetSearch: false,
+        showResetSearch: false,
         searchValue: ''
       });
     });
@@ -151,7 +155,7 @@ export default class App extends Component {
       });
     }
     else if (this.refs.NewEditEmployeeModal.state.mode === 'edit') {
-      client.saveOldEmployee(employeeObj.id,employeeObj, (result) => {
+      client.saveOldEmployee(employeeObj.id, employeeObj, (result) => {
         this.refs.NewEditEmployeeModal.close();
         this.loadAllEmployee();
       });
@@ -161,7 +165,7 @@ export default class App extends Component {
   handleSearchReset(e) {
     this.loadAllEmployee();
   }
-  
+
   handleSearchChange(e) {
     var value = e.target.value;
 

@@ -19,7 +19,7 @@ export default class ViewEmployeeModal extends React.Component {
     return (
       <Modal show={this.state.showModal} container={this.props.container} onHide={this.close}>
         <Modal.Header closeButton>
-          <Modal.Title>Employee View Details</Modal.Title>
+          <Modal.Title>Employee Details</Modal.Title>
         </Modal.Header>
 
         <Modal.Body>
