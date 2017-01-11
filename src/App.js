@@ -1,11 +1,14 @@
 import React, { Component } from 'react';
 import logo from './logo.svg';
 import './App.css';
-import { Button, Modal, Form, FormControl, Table} from 'react-bootstrap'
-import Client from './Client';
-import FieldGroup from './components/FieldGroup.js';
+import { Button, Modal, Form, FormControl} from 'react-bootstrap'
+import Client from './Client.js';
+import FieldGroup  from './components/FieldGroup.js';
 import ConfirmDeleteModal from './components/ConfirmDeleteModal.js';
 import ViewEmployeeModal from './components/ViewEmployeeModal.js';
+import EmployeeDataTable from './components/EmployeeDataTable.js';
+
+const client = new Client();
 
 class NewEditEmployeeModal extends React.Component {
   constructor(props) {
@@ -21,7 +24,6 @@ class NewEditEmployeeModal extends React.Component {
   open() {
     this.setState({ showModal: true });
   }
-
   // generic handle change function
   _handleChange(ev) {
     // create clone of employee object
@@ -76,64 +78,6 @@ class NewEditEmployeeModal extends React.Component {
   }
 }
 
-class EmployeeDataRow extends React.Component {
-  render() {
-    return (
-      <tr>
-        <td>{this.props.employee.id}</td>
-        <td>{this.props.employee.firstName}</td>
-        <td>{this.props.employee.lastName}</td>
-        <td>{this.props.employee.email}</td>
-        <td>
-          <Button bsStyle="link" onClick={this.props.view} value={this.props.employeeIndex}>
-            View
-          </Button>
-          <Button bsStyle="link" onClick={this.props.edit} value={this.props.employee.id}>
-            edit
-          </Button>
-          <Button bsStyle="link" onClick={this.props.delete} value={this.props.employee.id}>
-            Delete
-          </Button>
-        </td>
-      </tr>
-    );
-  }
-}
-class EmployeeDataTable extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = { employees: [] };
-  }
-  componentDidMount() {
-  }
-  render() {
-    var rows = [];
-
-    this.props.employees.map((employee, employeeIndex) => {
-      rows.push(<EmployeeDataRow employee={employee} key={employee.id} view={this.props.viewEmployee} edit={this.props.editEmployee} delete={this.props.deleteEmployee} employeeIndex={employeeIndex} />)
-    });
-
-    return (
-      <Table responsive striped bordered condensed hover>
-        <thead>
-          <tr>
-            <th>Id</th>
-            <th>First Name</th>
-            <th>Last Name</th>
-            <th>Email</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          {rows.length > 0 ?
-            (rows)
-            : (<tr ><td colSpan={5}>No Data Found</td></tr>)
-          }
-        </tbody>
-      </Table>
-    );
-  }
-}
 
 export default class App extends Component {
   constructor(props) {
@@ -148,9 +92,11 @@ export default class App extends Component {
     this.handleSearchReset = this.handleSearchReset.bind(this);
     this.handleSaveEmployee = this.handleSaveEmployee.bind(this);
     this.handleDeleteEmployee = this.handleDeleteEmployee.bind(this);
+
   }
+
    loadAllEmployee() {
-    Client.loadAllEmployees('',(employees) => {
+    client.loadAllEmployees('',(employees) => {
       this.setState({
         employees: employees,
          showResetSearch: false,
@@ -191,7 +137,7 @@ export default class App extends Component {
 
   handleDeleteEmployee(e) {
     var employeeId = e.target.value;
-    Client.deleteEmployee(employeeId, (result) => {
+    client.deleteEmployee(employeeId, (result) => {
       this.refs.ConfirmDeleteModal.close();
       this.loadAllEmployee();
     });
@@ -199,13 +145,13 @@ export default class App extends Component {
   handleSaveEmployee(e) {
     var employeeObj = this.refs.NewEditEmployeeModal.state.employee;
     if (this.refs.NewEditEmployeeModal.state.mode === 'new') {
-      Client.saveNewEmployee(employeeObj, (result) => {
+      client.saveNewEmployee(employeeObj, (result) => {
         this.refs.NewEditEmployeeModal.close();
         this.loadAllEmployee();
       });
     }
     else if (this.refs.NewEditEmployeeModal.state.mode === 'edit') {
-      Client.saveOldEmployee(employeeObj.id,employeeObj, (result) => {
+      client.saveOldEmployee(employeeObj.id,employeeObj, (result) => {
         this.refs.NewEditEmployeeModal.close();
         this.loadAllEmployee();
       });
@@ -233,7 +179,7 @@ export default class App extends Component {
         showResetSearch: true,
       });
     }
-    Client.loadAllEmployees(value, (employees) => {
+    client.loadAllEmployees(value, (employees) => {
       this.setState({
         employees: employees
       });
