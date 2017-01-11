@@ -1,48 +1,12 @@
 import React, { Component } from 'react';
-//import request from 'superagent';
-//import jsonp from "superagent-jsonp";
 import logo from './logo.svg';
 import './App.css';
-import { Button, Modal, Form, FormGroup, FormControl, ControlLabel, HelpBlock, Table, Grid, Row, Col, PageHeader } from 'react-bootstrap'
+import { Button, Modal, Form, FormControl, Table} from 'react-bootstrap'
 import Client from './Client';
 import FieldGroup from './components/FieldGroup.js';
+import ConfirmDeleteModal from './components/ConfirmDeleteModal.js';
+import ViewEmployeeModal from './components/ViewEmployeeModal.js';
 
-const MATCHING_ITEM_LIMIT = 25;
-
-class ConfirmDeleteModal extends React.Component {
-
-  constructor(props) {
-    super(props);
-    this.state = { showModal: false, employeeId: '' };
-    this.open = this.open.bind(this);
-    this.close = this.close.bind(this);
-  }
-  close() {
-    this.setState({ showModal: false });
-  }
-  open() {
-    this.setState({ showModal: true });
-  }
-
-  render() {
-    return (
-      <Modal show={this.state.showModal} container={this.props.container} onHide={this.close}>
-        <Modal.Header closeButton>
-          <Modal.Title>Confirm Delete Employee</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <form>
-            <span>Are you sure you want to delete employee ?</span>
-          </form>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button bsStyle="primary" onClick={this.props.onConfirmDeleteEmployee} value={this.state.employeeId}>Yes</Button>
-          <Button onClick={this.close}>No</Button>
-        </Modal.Footer>
-      </Modal>
-    );
-  }
-}
 class NewEditEmployeeModal extends React.Component {
   constructor(props) {
     super(props);
@@ -60,7 +24,7 @@ class NewEditEmployeeModal extends React.Component {
 
   // generic handle change function
   _handleChange(ev) {
-    // create clone of fields object using ES6 spread operator
+    // create clone of employee object
     var employee =Object.assign({},  this.state.employee);
     // update specified key in the fields object using the input's name attribute
     employee[ev.target.name] = ev.target.value;
@@ -111,76 +75,7 @@ class NewEditEmployeeModal extends React.Component {
     );
   }
 }
-class ViewEmployeeModal extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = { showModal: false, employee: {} };
-    this.open = this.open.bind(this);
-    this.close = this.close.bind(this);
-  }
-  close() {
-    this.setState({ showModal: false });
-  }
-  open() {
-    this.setState({ showModal: true });
-  }
 
-  render() {
-    return (
-      <Modal show={this.state.showModal} container={this.props.container} onHide={this.close}>
-        <Modal.Header closeButton>
-          <Modal.Title>Employee Details</Modal.Title>
-        </Modal.Header>
-
-        <Modal.Body>
-          <Form horizontal>
-            <Row>
-              <Col sm={3}>
-                <ControlLabel>Id: </ControlLabel>
-              </Col>
-              <Col>
-                <FormControl.Static>
-                  {this.state.employee.id}
-                </FormControl.Static>
-              </Col>
-            </Row>
-
-            <Row>
-              <Col sm={3}>
-                <ControlLabel>First Name: </ControlLabel>
-              </Col>
-              <Col>
-                <FormControl.Static>
-                  {this.state.employee.firstName}
-                </FormControl.Static>
-              </Col>
-            </Row>
-            <Row>
-              <Col sm={3}>
-                <ControlLabel>Last Name: </ControlLabel>
-              </Col>
-              <Col>
-                <FormControl.Static>{this.state.employee.lastName}</FormControl.Static>
-              </Col>
-            </Row>
-
-            <Row>
-              <Col sm={3}>
-                <ControlLabel>Email</ControlLabel>
-              </Col>
-              <Col>
-                <FormControl.Static>{this.state.employee.email}</FormControl.Static>
-              </Col>
-            </Row>
-          </Form>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button onClick={this.close}>Cancel</Button>
-        </Modal.Footer>
-      </Modal>
-    );
-  }
-}
 class EmployeeDataRow extends React.Component {
   render() {
     return (
@@ -246,28 +141,34 @@ export default class App extends Component {
     this.state = { employees: [], searchValue: '', showResetSearch: false };
     this.openNewEditEmployee = this.openNewEditEmployee.bind(this);
     this.openViewEmployee = this.openViewEmployee.bind(this);
-    this.openDeleteEmployee = this.openDeleteEmployee.bind(this);
+    this.openDeleteEmployee = this.openDeleteEmployee.bind(this);  
+        
+    this.loadAllEmployee = this.loadAllEmployee.bind(this);
     this.handleSearchChange = this.handleSearchChange.bind(this);
     this.handleSearchReset = this.handleSearchReset.bind(this);
-    this.deleteEmployee = this.deleteEmployee.bind(this);
-    this.loadAllEmployee = this.loadAllEmployee.bind(this);
-    this.saveEmployee = this.saveEmployee.bind(this);
+    this.handleSaveEmployee = this.handleSaveEmployee.bind(this);
+    this.handleDeleteEmployee = this.handleDeleteEmployee.bind(this);
   }
-  componentDidMount() {
-    Client.loadAllEmployees((employees) => {
+   loadAllEmployee() {
+    Client.loadAllEmployees('',(employees) => {
       this.setState({
-        employees: employees
+        employees: employees,
+         showResetSearch: false,
+        searchValue: ''
       });
     });
+  }
+  componentDidMount() {
+    this.loadAllEmployee();
   }
   openNewEditEmployee(e) {
     var employeeId = e.target.value;
     this.refs.NewEditEmployeeModal.state.employee = {};
 
-    if (employeeId != '') {
+    if (employeeId !== '') {
       this.refs.NewEditEmployeeModal.state.mode = 'edit';
       for (let i = 0; i < this.state.employees.length; i++) {
-        if (this.state.employees[i].id == employeeId) {
+        if (this.state.employees[i].id === employeeId) {
           this.refs.NewEditEmployeeModal.state.employee = this.state.employees[i];
           break;
         }
@@ -288,22 +189,22 @@ export default class App extends Component {
     this.refs.ConfirmDeleteModal.open();
   }
 
-  deleteEmployee(e) {
+  handleDeleteEmployee(e) {
     var employeeId = e.target.value;
     Client.deleteEmployee(employeeId, (result) => {
       this.refs.ConfirmDeleteModal.close();
       this.loadAllEmployee();
     });
   }
-  saveEmployee(e) {
+  handleSaveEmployee(e) {
     var employeeObj = this.refs.NewEditEmployeeModal.state.employee;
-    if (this.refs.NewEditEmployeeModal.state.mode == 'new') {
+    if (this.refs.NewEditEmployeeModal.state.mode === 'new') {
       Client.saveNewEmployee(employeeObj, (result) => {
         this.refs.NewEditEmployeeModal.close();
         this.loadAllEmployee();
       });
     }
-    else if (this.refs.NewEditEmployeeModal.state.mode == 'edit') {
+    else if (this.refs.NewEditEmployeeModal.state.mode === 'edit') {
       Client.saveOldEmployee(employeeObj.id,employeeObj, (result) => {
         this.refs.NewEditEmployeeModal.close();
         this.loadAllEmployee();
@@ -311,27 +212,12 @@ export default class App extends Component {
     }
 
   }
-
   handleSearchReset(e) {
-    Client.loadAllEmployees((employees) => {
-      this.setState({
-        employees: employees,
-        showResetSearch: false,
-        searchValue: ''
-      });
-    });
+    this.loadAllEmployee();
   }
-  loadAllEmployee() {
-    Client.loadAllEmployees((employees) => {
-      this.setState({
-        employees: employees,
-      });
-    });
-  }
-
-
+  
   handleSearchChange(e) {
-    const value = e.target.value;
+    var value = e.target.value;
 
     this.setState({
       searchValue: value,
@@ -347,9 +233,9 @@ export default class App extends Component {
         showResetSearch: true,
       });
     }
-    Client.searchEmployees(value, (employees) => {
+    Client.loadAllEmployees(value, (employees) => {
       this.setState({
-        employees: employees.slice(0, MATCHING_ITEM_LIMIT),
+        employees: employees
       });
     });
   }
@@ -387,9 +273,9 @@ export default class App extends Component {
             <i className="glyphicon glyphicon-plus"> </i>
             &nbsp;New Employee
           </Button>
-          <NewEditEmployeeModal ref="NewEditEmployeeModal" onSaveEmployee={this.saveEmployee} />
+          <NewEditEmployeeModal ref="NewEditEmployeeModal" onSaveEmployee={this.handleSaveEmployee} />
           <ViewEmployeeModal ref="EmployeeViewModal" />
-          <ConfirmDeleteModal ref="ConfirmDeleteModal" onConfirmDeleteEmployee={this.deleteEmployee} />
+          <ConfirmDeleteModal ref="ConfirmDeleteModal" onConfirmDeleteEmployee={this.handleDeleteEmployee} />
         </div >
       </div >
     );

@@ -1,27 +1,30 @@
 
-function searchEmployees(query, cb) {
-  return fetch('api/employees?q=' + query, {
+const apiURL = 'api/employees';
+
+function loadAllEmployees(query,cb) {
+var fullUrl= buildQuery(apiURL,query);
+return fetch(fullUrl, {
     accept: 'application/json',
   }).then(checkStatus)
     .then(parseJSON)
     .then(cb);
+}
+function buildQuery(url,query){
+  if(query!=null && query!==''){
+    return url +'?q='+ query;
+  }
+  return url;
 }
 
-function loadAllEmployees(cb) {
-  return fetch('api/employees/', {
-    accept: 'application/json',
-  }).then(checkStatus)
-    .then(parseJSON)
-    .then(cb);
-}
 function deleteEmployee(id, cb) {
-  return fetch('api/employees/' + id, {
+  return fetch(apiURL+'/' + id, {
     method: 'delete'
   }).then(checkStatus)
     .then(cb);
 }
+
 function saveNewEmployee(obj, cb) {
-  return fetch('api/employees/', {
+  return fetch(apiURL+'/', {
     method: 'POST',
     headers: {
       'Accept': 'application/json',
@@ -32,7 +35,7 @@ function saveNewEmployee(obj, cb) {
     .then(cb);
 }
 function saveOldEmployee(id,obj, cb) {
-  return fetch('api/employees/'+id, {
+  return fetch(apiURL+'/'+id, {
     method: 'PUT',
    headers: {
       'Accept': 'application/json',
@@ -42,7 +45,7 @@ function saveOldEmployee(id,obj, cb) {
   }).then(checkStatus)
     .then(cb);
 }
-function checkStatus(response) {debugger
+function checkStatus(response) {
   if (response.status >= 200 && response.status < 300) {
     return response;
   } else {
@@ -58,5 +61,5 @@ function parseJSON(response) {
   return response.json();
 }
 
-const Client = { loadAllEmployees, searchEmployees, deleteEmployee, saveNewEmployee, saveOldEmployee };
+const Client = { loadAllEmployees, deleteEmployee, saveNewEmployee, saveOldEmployee };
 export default Client;

@@ -2,9 +2,6 @@ import React from 'react';
 import { Popover,HelpBlock,  FormGroup,Row, Col , OverlayTrigger, FormControl, ControlLabel } from 'react-bootstrap'
 
 export default class FieldGroup extends React.Component {
-  constructor(props) {
-    super(props);
-  }
   render() {
     const popoverHoverFocus = (
       <Popover id="popover-trigger-hover-focus">
